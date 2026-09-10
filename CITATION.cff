@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "AI Composition Gap: Reproducibility Package"
+message: "If you use this dataset, code, or protocol, please cite the associated paper and repository release."
+type: software
+authors:
+  - family-names: "Damor"
+    given-names: "Prabhakar"
+    orcid: "https://orcid.org/0009-0000-8169-3299"
+repository-code: "https://github.com/iamprbkr/defensive-ai-composition-gap"
+license: "CC-BY-4.0"
+version: "1.0.0"
+date-released: "2026-09-10"

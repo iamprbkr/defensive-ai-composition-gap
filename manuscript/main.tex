@@ -1,0 +1,383 @@
+% This paper follows the Springer LLNCS proceedings template.
+% Version 2.25 of 2026/09/03
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{newtxtext}
+\usepackage[varvw]{newtxmath} % selects Times Roman as basic font
+%
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{array}
+%
+\begin{document}
+%
+\title{Defensive AI at the Boundaries Between Frameworks: A Composition Gap Analysis}
+%
+\titlerunning{The Composition Gap in AI Security}
+%
+\author{Prabhakar Damor\inst{1}\orcidID{0009-0000-8169-3299}\and
+  Dr. Naveen Kumar\inst{1}}
+%
+\authorrunning{Prabhakar}
+%
+\institute{Department of Computer Science \& Engineering, Indian Institute of Information Technology Vadodara}
+%
+\maketitle
+\begin{abstract}
+AI security guidance is expanding faster than the evidence that its controls compose across system boundaries. Production AI systems combine interfaces, retrieval and orchestration, models, data, platforms, and infrastructure, while responsibility for those components is distributed across teams and suppliers. This paper examines the resulting composition problem rather than proposing another security framework.
+
+We conduct a descriptive content analysis of 35 publicly verifiable AI-security instruments and code their coverage across a seven-layer AI system model. The corpus is purposive and is treated as a research sample for comparison, not as a statistical estimate of the global standards population. We then translate the coverage matrix into seven trust boundaries and specify the assumptions, control obligations, and evidence that should hold at each boundary. Four documented incident classes are used as consistency checks rather than causal validation.
+
+The analysis shows a persistent concentration of primary coverage at model, data, and governance layers, while interface and orchestration coverage is smaller but rapidly expanding. The central finding is therefore not that these layers are ungoverned. It is that existing guidance rarely specifies a common assurance condition for demonstrating that controls owned by different layers remain valid when an attack crosses them. We operationalize this condition as a composition gap and propose a 13-point screening audit derived directly from the seven layers and six adjacent boundaries. The paper contributes a reproducible coding scheme, an interrelated coverage--boundary--incident evidence chain, and a set of testable composition obligations for future empirical validation.
+\end{abstract}
+
+\section{Introduction}
+
+AI security is increasingly a systems problem. A production AI service accepts input through an interface, retrieves or transforms context, invokes a model, routes outputs through tools or workflows, and operates on infrastructure and data supplied by multiple teams and vendors. Security controls are usually specified at one of these points. Attacks, however, need not respect the same decomposition.
+
+This paper studies that mismatch. We assembled 35 verifiable security instruments spanning NIST, ENISA, ISO/IEC, ETSI, MITRE, OWASP, provider policies, and national or regional policy sources, and mapped them onto a seven-layer stack: infrastructure, platform, data, model, orchestration, interface, and application. In the original consolidation, primary coverage is concentrated at the model layer (14 instruments), followed by governance (14), data (7), platform (6), infrastructure (6), orchestration (3), and interface (1). These counts should be read as a snapshot of the coded corpus rather than a census of the evolving ecosystem.
+
+The interpretation also needs updating. Since the initial framework set was assembled, OWASP has formalized prompt injection and excessive agency in its 2025 LLM guidance and released a dedicated Top 10 for Agentic Applications for 2026. MITRE ATLAS now explicitly represents agentic AI and tool invocation in its threat matrix. NIST's 2025 adversarial-ML taxonomy likewise covers attacks across the AI lifecycle and distinguishes generative-AI misuse from conventional adversarial examples. These developments weaken any claim that interface and orchestration security is simply absent. They instead sharpen the more defensible claim: controls are emerging, but their composition across organizational and technical boundaries remains underspecified. \cite{owasp2025,owaspagentic2026,mitreatlas2026,nist2025aml}
+
+The literature supports this narrower systems-level concern. Defense surveys report that robustness, cost, and accuracy trade-offs remain unresolved when defenses are evaluated independently. Offensive-security studies show that generative and agentic systems expand the range of actions available to attackers. Risk-management standards such as NIST AI RMF and ISO/IEC 42001 provide cross-organizational governance, but they do not prescribe a single technical composition rule for the heterogeneous controls used inside an AI application. \cite{wu2025defenses,ma2026advancements,nistrmf2023,nistgaiprofile2024,iso42001,iso23894}
+
+Our central argument is therefore deliberately narrower than a claim of framework failure: the layer is not sufficient as the unit of security analysis. A robust model can still be exposed through untrusted retrieval context, an agent can safely authenticate yet misuse a legitimate tool, and a validated output can become dangerous when consumed by an application without appropriate authorization or sanitization. The security property that matters at these points is not merely whether each component is protected, but whether the assumptions on both sides of the boundary are compatible.
+
+We make four contributions:
+\begin{itemize}
+\item A seven-layer AI stack that distinguishes technical security concerns from cross-cutting governance.
+\item A coverage matrix over 35 verified instruments, with primary, secondary, and absent coverage coded by layer.
+\item A trust-boundary model identifying seven interfaces and the assumption mismatch that can produce a composition failure.
+\item A validation of the model against four documented incident classes and a 13-point audit that focuses on boundary ownership rather than another framework score.
+\end{itemize}
+
+\paragraph{Research questions.}
+The study is organized around four questions: \textbf{RQ1}: How is security coverage distributed across the seven layers in the coded corpus? \textbf{RQ2}: Which assumptions change at the interfaces between layers, and what control obligations follow from those changes? \textbf{RQ3}: Are documented incident paths consistent with the proposed boundary failures? \textbf{RQ4}: Can the resulting model be reduced to a small, auditable screening procedure without implying a validated risk score? These questions deliberately separate descriptive coverage, analytical modeling, consistency checking, and practitioner use.
+
+\section{Related Work}
+
+The literature relevant to this study falls into four overlapping streams.
+
+\paragraph{Adversarial-ML and defense surveys.}
+Wu et al.~\cite{wu2025defenses} organize defenses by lifecycle stage and highlight the difficulty of turning stage-level results into an overall security claim. Ma et al.~\cite{ma2026advancements} similarly report persistent trade-offs among robustness, accuracy, and computational cost. NIST AI 100-2e2025 provides a broader taxonomy covering predictive and generative AI, attack lifecycle stages, attacker capabilities, and mitigation classes~\cite{nist2025aml}. These works establish the vocabulary for our analysis, but do not define an operational rule for composing controls at system boundaries.
+
+\paragraph{Offensive and agentic AI.}
+Schr\"oer et al.~\cite{schroer2025offensive} systematize the offensive potential of AI, while Gupta et al.~\cite{gupta2023threatgpt} and Charfeddine et al.~\cite{charfeddine2024chatgpt} examine dual-use capabilities. More recent work and operational guidance emphasize autonomous planning, tool use, and multi-step execution. OWASP's 2025 LLM guidance explicitly includes prompt injection and excessive agency, and its 2026 Agentic Applications Top 10 treats agent behavior as a distinct security problem~\cite{owasp2025,owaspagentic2026}. MITRE ATLAS likewise now includes agentic AI, including tool invocation, in its living threat knowledge base~\cite{mitreatlas2026}. These resources make the orchestration problem more visible; they do not by themselves establish how agent controls should compose with model, platform, identity, or application controls.
+
+\paragraph{Standards and governance.}
+NIST AI RMF 1.0 and its Generative AI Profile provide risk-management guidance across the lifecycle~\cite{nistrmf2023,nistgaiprofile2024}. ISO/IEC 23894 provides AI-specific risk-management guidance, while ISO/IEC 42001 establishes an AI management system for organizational governance~\cite{iso23894,iso42001}. ENISA's 2025 threat landscape adds a threat-centric view based on 4,875 incidents observed between July 2024 and June 2025~\cite{enisa2025}. These instruments are important precisely because they operate above individual components. Their scope, however, differs from the technical question studied here: which control owns the interface between two independently governed components, and what evidence demonstrates that the controls compose?
+
+\paragraph{Positioning.}
+Our contribution is not another threat taxonomy or management framework. We use existing frameworks as inputs to a cross-framework analysis. The novelty claim is therefore limited to the mapping and boundary analysis: we identify where different classes of guidance meet, state the assumptions that cross each boundary, and test whether documented incidents are consistent with failures at those points.
+
+\paragraph{Novelty under current guidance.} The contribution is intentionally not the discovery of prompt injection, agent hijacking, or excessive agency. Those risks are already documented by current application-security and adversarial-ML resources. The novelty lies in treating the \emph{transfer of security responsibility} as the unit of analysis and connecting four artifacts that are usually reported separately: layer coverage, boundary assumptions, incident paths, and auditable evidence obligations. This distinction also makes the study falsifiable: a future framework can reduce the measured composition gap if it explicitly specifies a boundary rule and the evidence needed to demonstrate it.
+
+\section{The Seven-Layer Stack Model and Framework Consolidation}
+\label{sec:model}
+
+\subsection{The Seven-Layer AI Stack Model}
+
+We use a seven-layer model from physical infrastructure to end-user applications. The layers are analytical boundaries, not independent security domains. Data affects model behavior; model outputs influence orchestration; orchestration exposes tools to applications; and application decisions may create effects in external systems. Governance is treated separately as a cross-cutting dimension.
+
+\begin{table*}[t]
+\caption{Seven-layer AI security model and the evidence expected at each layer. The last two columns connect the architectural model to the coverage matrix (Table~\ref{tab:coverage}) and boundary obligations (Table~\ref{tab:seams}).}
+\label{tab:layers}
+\centering
+\small
+\begin{tabular}{@{}p{1.15cm}p{2.0cm}p{2.35cm}p{2.35cm}p{2.25cm}p{1.65cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Primary function} & \textbf{Representative threats} & \textbf{Core control objective} & \textbf{Minimum evidence} & \textbf{Boundary links}\\
+\midrule
+L7 Application & User-facing product and business action & unsafe output use, data leakage, workflow abuse & constrain effects and validate model-derived actions before execution & authorization tests, output-handling tests, audit logs & S6,S7\\
+L6 Interface & User, service, and multimodal input/output boundary & prompt injection, spoofing, malicious context & distinguish trusted instructions from untrusted content & input provenance, trust labels, injection tests & S5,S6\\
+L5 Orchestration & Retrieval, planning, agent and tool routing & tool misuse, excessive agency, indirect injection & enforce least privilege and policy at each action transition & tool-policy tests, trajectory logs, deny/allow traces & S4,S5,S7\\
+L4 Model & Inference and learned behavior & evasion, backdoors, extraction, misuse & bound model behavior and detect unsafe or anomalous outputs & robustness tests, extraction tests, model provenance & S3,S4,S7\\
+L3 Data & Training, retrieval, embeddings, and labels & poisoning, provenance failure, privacy leakage & establish provenance, integrity, and authorized use & lineage records, poisoning tests, access logs & S2,S3,S7\\
+L2 Platform & APIs, CI/CD, registries, serving and dependencies & supply-chain compromise, API abuse, model theft & preserve artifact integrity and service identity & signed artifacts, SBOMs, deployment attestations & S1,S2,S7\\
+L1 Infrastructure & Compute, network, storage, hardware & hardware compromise, side channels, isolation failure & isolate workloads and establish infrastructure trust & attestation, isolation tests, hardware provenance & S1,S7\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Unlike OSI layers, which describe relatively independent protocol interfaces, AI layers describe coupled computational and organizational stages. Their boundaries therefore carry assumptions about provenance, trust, authority, and semantics, not only data format.
+
+\subsection{Study Design and Coding Protocol}
+\label{sec:method}
+
+This study uses a descriptive content-analysis design rather than an inferential survey. The unit of analysis is a publicly verifiable AI-security instrument: a standard, framework, taxonomy, guidance document, provider security policy, or comparable policy instrument with an identifiable issuing body and stated security or risk scope. The corpus contains 35 instruments selected from the sources described in Section~\ref{sec:matrix}. The corpus is purposive, not a probability sample of all AI-security documents; consequently, the resulting percentages describe the coded corpus and cannot be interpreted as estimates of the global standards population.
+
+Each instrument was coded against seven technical layers using three mutually exclusive labels for each layer: Primary, Secondary, or None. Primary means that the layer is an explicit subject of the instrument; Secondary means that the layer is addressed but is not the principal object; None means that no substantive control or guidance for the layer was identified. Governance is coded separately as a cross-cutting dimension. The coding rule intentionally follows stated scope rather than inferring coverage from generic references to risk, security, or lifecycle management.
+
+The analysis is descriptive. Counts, percentages, and coverage differences are reported without hypothesis tests because the 35 instruments were purposively selected and are not independent random observations. For the same reason, confidence intervals around the percentages would risk implying a population-sampling interpretation that the study design does not support. A useful robustness check is the minimum unit change: with $n=35$, reclassifying or adding one instrument changes a corpus proportion by approximately 2.9 percentage points. The interface result of 1/35 is therefore treated as a snapshot and not as evidence that formal coverage is absent.
+
+The principal methodological limitation is single-coder classification. No inter-rater reliability statistic is reported because an independent second coding of the full corpus was not performed. The coding matrix is therefore presented as an auditable research artifact, and replication with at least two independent coders should be considered a prerequisite for stronger quantitative claims.
+
+\paragraph{Reproducibility protocol.} For each instrument, the intended audit record contains the issuing organization, document title and version, publication/access date, inclusion rationale, layer codes, attack/control scope, and a short textual justification for every non-None classification. Borderline cases should be retained rather than silently discarded. In a replication, two coders should independently complete the matrix before adjudication; agreement should be reported separately for layer coverage and attack/control coverage because the latter has a different unit of analysis.
+
+\subsection{Consolidation Mapping}
+\label{sec:matrix}
+
+We coded 35 security instruments from standards bodies, public agencies, industry organizations, and provider guidance against the seven layers. Each instrument receives Primary, Secondary, or None for a layer according to the protocol in Section~\ref{sec:method}. The resulting matrix is a descriptive corpus analysis, not a ranking of framework quality or a statistical estimate of the standards ecosystem.
+
+\begin{table}[t]
+\caption{Coverage profile of the 35-instrument corpus. Primary coverage is the instrument's stated main subject; any coverage includes primary and secondary scope. The final columns expose the gap that feeds the boundary analysis rather than ranking framework quality.}
+\label{tab:coverage}
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+\textbf{Layer} & \textbf{Primary} & \textbf{Primary \%} & \textbf{Any} & \textbf{Any \%} & \textbf{Uncovered} & \textbf{Boundary exposure}\\
+\midrule
+L7 Application & 2 & 5.7 & 12 & 34.3 & 23 & high\\
+L6 Interface & 1 & 2.9 & 5 & 14.3 & 30 & very high\\
+L5 Orchestration & 3 & 8.6 & 8 & 22.9 & 27 & very high\\
+L4 Model & 14 & 40.0 & 19 & 54.3 & 16 & moderate\\
+L3 Data & 7 & 20.0 & 13 & 37.1 & 22 & moderate\\
+L2 Platform & 6 & 17.1 & 10 & 28.6 & 25 & high\\
+L1 Infrastructure & 6 & 17.1 & 8 & 22.9 & 27 & high\\
+Governance & 14 & 40.0 & 17 & 48.6 & 18 & cross-cutting\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Coverage remains uneven, but the table is deliberately read as a chain rather than as a ranking. Table~\ref{tab:layers} defines what evidence a layer should produce; Table~\ref{tab:coverage} shows how often the corpus claims responsibility for that layer; Table~\ref{tab:seams} asks what must be preserved when that responsibility changes hands; and Table~\ref{tab:validation} checks whether the resulting boundary failure is recognizable in documented incidents. The interface layer has the smallest primary share (2.9\%), while model and governance each have 40.0\%. This difference is descriptive, not a quality score. Recent OWASP and MITRE material narrows the apparent gap, so the useful observation is the persistence of distributed ownership rather than absence of controls.
+
+\subsection{Cross-Framework Mapping}
+\label{sec:cross}
+
+We also mapped sixteen attack classes and eighteen defensive controls across the principal instruments. This secondary mapping is used to characterize scope, not to assign effectiveness scores. No single instrument spans the complete set. Risk-management standards emphasize organizational processes and lifecycle governance; adversarial-ML taxonomies emphasize attack classes and mitigations; application-security guidance emphasizes prompt, output, and agency failures; and ATLAS provides an operational adversary knowledge base. The documents overlap, but they answer different questions. The analytical problem is consequently one of alignment and evidence across scopes, not simply the absence of individual controls.
+
+The same pattern appears in privacy and resilience. Differential privacy limits information leakage during learning, while cyber-resilience addresses preparation, absorption, recovery, and adaptation. Neither specifies how privacy, identity, model, and application controls should interact during an attack. The problem is composition, not simply missing techniques.
+
+\section{The Composition Gap}
+\label{sec:seams}
+
+An AI trust boundary is an interface between adjacent layers. We define a composition failure as a case in which the control on one side relies on an assumption that is not enforced, or is contradicted, by the control on the other side. This definition makes the claim testable: the boundary is secure only when its assumptions, authority, and evidence are explicit.
+
+We analyze six adjacent boundaries and one cross-layer case. The latter is included because modern attacks can traverse several layers in a single workflow. Table~\ref{tab:seams} summarizes the resulting mismatches.
+
+\begin{table*}[t]
+\caption{Trust-boundary obligations derived from the seven-layer model. Each row links the boundary to a measurable security obligation and to evidence that can be tested. This makes the boundary analysis operational rather than purely conceptual.}
+\label{tab:seams}
+\centering
+\small
+\begin{tabular}{@{}p{0.7cm}p{2.25cm}p{2.55cm}p{3.05cm}p{3.0cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Boundary} & \textbf{Assumption to verify} & \textbf{Composition obligation} & \textbf{Evidence / test}\\
+\midrule
+S1 & L1\,$\rightarrow$\,L2 & the deployed artifact runs on the attested environment & bind artifact identity to build and runtime provenance & signed artifact + SBOM + deployment attestation\\
+S2 & L2\,$\rightarrow$\,L3 & authenticated access implies trustworthy data flow & preserve identity, provenance, and integrity through ingestion & lineage trace from API request to stored/training object\\
+S3 & L3\,$\rightarrow$\,L4 & clean or approved data produces acceptable model behavior & test model behavior against provenance and poisoning assumptions & poisoning/backdoor tests linked to dataset lineage\\
+S4 & L4\,$\rightarrow$\,L5 & model behavior remains bounded when an agent supplies context and tools & evaluate model and planner jointly under adversarial context & trajectory test with hostile retrieval/tool outputs\\
+S5 & L5\,$\rightarrow$\,L6 & interface content is the only untrusted input class & propagate trust labels and authority constraints to every agent action & indirect-injection test plus tool authorization trace\\
+S6 & L6\,$\rightarrow$\,L7 & validated output is safe for the consuming application & revalidate semantics, authorization, and side effects before execution & output-to-action tests and negative authorization cases\\
+S7 & cross-layer & local controls remain valid when an attack traverses multiple owners & test an end-to-end attack path and preserve evidence across layers & attack-chain replay with correlated logs and owner sign-off\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Three observations follow. First, the proposed boundary is an analytical unit, not a claim that either adjacent control is ineffective. At S4, for example, model robustness can be demonstrated while orchestration supplies adversarial context; at S5, a tool can be correctly authenticated while the workflow grants it more authority than the context warrants.
+
+Second, the standards landscape is evolving. OWASP now distinguishes prompt injection from excessive agency and publishes dedicated agentic guidance, while MITRE ATLAS explicitly represents agentic AI and tool invocation. These developments weaken any claim that interface or orchestration security is wholly unaddressed. They strengthen the narrower claim that coverage is distributed across communities and that a cross-framework composition rule is still not standardized.
+
+Third, S7 is a system-level boundary rather than a seventh adjacent interface. Multi-stage attacks can combine weaknesses that are individually within acceptable limits. A system-level security claim therefore cannot be obtained by simply adding component-level test results unless the interactions among components are also evaluated.
+
+\section{Evaluation and Discussion}
+\label{sec:evaluation}
+
+\subsection{Validation Against Documented Attacks}
+\label{sec:validation}
+
+The composition gap is a structural claim. We tested its plausibility by re-analyzing four public incident classes through the trust-boundary model. The exercise is not intended as causal proof; it asks whether the model can explain failures that component-level controls leave unresolved.
+
+\begin{table*}[t]
+\caption{Incident-consistency analysis. The cases are not used to estimate incidence or prove causality. Each case is linked to the boundary obligation in Table~\ref{tab:seams}, showing what a component-only assessment could miss.}
+\label{tab:validation}
+\centering
+\small
+\begin{tabular}{@{}p{2.35cm}p{0.7cm}p{2.5cm}p{3.05cm}p{2.9cm}@{}}
+\toprule
+\textbf{Incident class} & \textbf{B.} & \textbf{Crossed assumption} & \textbf{Why component controls may coexist with failure} & \textbf{Boundary test implied}\\
+\midrule
+Indirect / zero-click prompt injection & S4/S5 & untrusted retrieved content enters a trusted reasoning or action path & model robustness does not establish that orchestration or retrieval content is trustworthy & hostile-context trajectory test\\
+Supply-chain compromise & S1 & artifact identity is trusted without proving build/runtime integrity & package provenance and runtime trust can be assessed separately & artifact-to-runtime provenance test\\
+Tool or agent authority misuse & S5 & authenticated tool access is treated as sufficient authorization & identity verifies who acts, not whether the requested action is authorized in context & contextual least-privilege test\\
+Classifier / application evasion & S6 & model or input robustness is treated as sufficient for downstream action safety & a correct prediction does not guarantee safe interpretation or authorization & output-to-side-effect test\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Across the four cases, the common pattern is a control boundary with an untested assumption. The mapping is necessarily interpretive because incident reports were not written using our model. It is therefore consistency evidence, not ground truth.
+
+\begin{table}[t]
+\caption{Cross-table traceability: how the paper's evidence chain connects architecture, corpus coverage, boundaries, and incidents.}
+\label{tab:trace}
+\centering
+\small
+\begin{tabular}{@{}p{1.25cm}p{2.1cm}p{2.0cm}p{2.3cm}@{}}
+\toprule
+\textbf{Stage} & \textbf{Source table} & \textbf{Question answered} & \textbf{Output used next}\\
+\midrule
+Architecture & Table~\ref{tab:layers} & What responsibilities exist? & layer evidence requirements\\
+Coverage & Table~\ref{tab:coverage} & Who claims responsibility? & candidate orphan/boundary areas\\
+Composition & Table~\ref{tab:seams} & What must survive transfer? & boundary obligations and tests\\
+Consistency & Table~\ref{tab:validation} & Do real attack paths cross it? & plausibility evidence\\
+Audit & Section~\ref{sec:audit} & Can ownership be checked quickly? & 13-point screening procedure\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Practical Audit Procedure}
+\label{sec:audit}
+
+The model is intended to support a short architecture review rather than replace a full security assessment. The 13 checks are derived directly from Tables~\ref{tab:layers} and~\ref{tab:seams}: seven checks ask whether each layer has an owned control and six ask whether the adjacent boundary has a composition rule. For each check, the reviewer records the control owner, the assumption being made, and one piece of evidence.
+
+\begin{enumerate}
+\item L1: infrastructure control and owner identified.
+\item L2: platform/artifact control and owner identified.
+\item L3: data provenance/integrity control and owner identified.
+\item L4: model robustness or misuse control and owner identified.
+\item L5: orchestration/agent authorization control and owner identified.
+\item L6: interface/input trust control and owner identified.
+\item L7: application/action authorization control and owner identified.
+\item S1: artifact-to-runtime provenance is explicitly composed.
+\item S2: identity and provenance survive ingestion.
+\item S3: data assumptions are tested against model behavior.
+\item S4: model and orchestration are tested jointly under adversarial context.
+\item S5: untrusted content cannot silently acquire agent authority.
+\item S6: model output is revalidated before application side effects.
+\end{enumerate}
+
+Each item receives one point only when an owner, a stated rule, and supporting evidence can be shown. This preserves the original maximum of 13 while making the score auditable and traceable to the model.
+
+The threshold is a screening rule proposed by this paper, not a validated industry benchmark. It has no empirical calibration and should not be used for regulatory certification, procurement ranking, or claims of quantified risk reduction. Its purpose is to force explicit ownership and evidence at the boundary.
+
+\subsection{Threats to Validity}
+
+\paragraph{Corpus construction.}
+The 35-instrument set is purposive and may overrepresent widely cited or readily accessible English-language instruments. It should not be interpreted as a complete census. A replication should publish the inclusion/exclusion log, document version and access date, and justify borderline cases.
+
+\paragraph{Coding and construct validity.}
+Framework coverage was coded from stated scope. The Primary/Secondary/None classification involves judgment, and another analyst may assign a document differently. Because broad risk-management language can create false positives, the coding rule deliberately requires substantive scope. The raw matrix should be treated as auditable rather than definitive. Independent double-coding and a reported agreement statistic would materially strengthen the quantitative result.
+
+\paragraph{Boundary validity.}
+The seven-layer stack is an analytical construct. Real systems may collapse layers, duplicate functions, or place retrieval, identity, policy enforcement, and tools differently. The trust boundaries should therefore be interpreted as recurring interfaces between security responsibilities, not as a mandatory physical architecture.
+
+\paragraph{Incident attribution.}
+The four incident mappings are retrospective interpretations. They show compatibility between observed failures and the proposed boundaries, not that the composition gap was the sole root cause.
+
+\paragraph{Framework evolution.}
+The 35-instrument corpus is a study snapshot. OWASP, MITRE, NIST, ISO/IEC, and national agencies continue to update their material. In particular, the emergence of dedicated agentic-security guidance means that future replications should expect higher coverage at the interface and orchestration layers. The durable claim is consequently not that those layers are ungoverned, but that cross-framework composition remains less explicit than component-level coverage.
+
+\subsection{Reviewer-Relevant Interpretation}
+\label{sec:reviewer}
+
+The evidence supports three claims of different strength. First, the 35-instrument corpus is unevenly distributed across the proposed layers. Second, several documented attack paths cross responsibility boundaries that are not represented by a single control family. Third, the proposed trust-boundary model offers a common vocabulary for expressing those cross-layer assumptions. The evidence does not establish that the composition gap causes a particular incident, that the seven-layer decomposition is uniquely correct, or that the 13-point audit predicts security outcomes. Keeping these claims separate is important: the contribution is a systems-level analytical model and a reproducible coding artifact, not a validated risk score.
+
+\section{Conclusion}
+AI security guidance is no longer short of taxonomies, controls, or agent-specific recommendations. The harder problem is demonstrating that these controls remain valid when responsibility moves between layers. Our analysis of 35 purposively selected instruments finds a strong concentration of primary coverage around model and governance concerns, with smaller but growing coverage of interfaces and orchestration. The counts are a corpus snapshot, not a population estimate.
+
+The paper's main contribution is a composition view. Table~\ref{tab:layers} defines the security responsibilities and evidence expected at each layer. Table~\ref{tab:coverage} records where the sampled instruments claim responsibility. Table~\ref{tab:seams} converts the resulting interfaces into explicit assumptions, obligations, and tests. Table~\ref{tab:validation} then asks whether documented attack paths are consistent with those boundary failures. Table~\ref{tab:trace} makes the evidence chain explicit. This interrelation is central to the contribution: the paper does not merely list frameworks; it provides a route from framework scope to a testable system property.
+
+The current evidence supports a restrained conclusion. Interface and orchestration security are not ungoverned; recent OWASP and MITRE work demonstrates otherwise. What remains less standardized is the assurance condition that connects identity, provenance, model behavior, agent authority, and application-side effects across organizational boundaries. The proposed 13-point audit translates that condition into a screening exercise, but its threshold is not empirically validated and should not be treated as a security score.
+
+The strongest next step is empirical replication. A second independent coder should code the complete corpus and report inter-rater agreement; the full coding matrix and inclusion/exclusion log should be released; and the six adjacent boundary tests should be implemented on representative agentic systems. Such work could determine whether the proposed composition obligations predict failures better than component-level security tests alone. If they do, the composition gap would move from an analytical proposition to an empirically measurable systems-security property.
+
+For standards developers, the practical implication is to add explicit boundary requirements to existing controls rather than create another standalone framework. A mature requirement should name the owner, state the trust assumption, specify the evidence that transfers across the boundary, and define what happens when that evidence is absent or invalid. That is the level at which today's fragmented guidance can become composable assurance.
+
+\begin{credits}
+\subsubsection{\ackname} This research was supported by no external funding.
+
+\subsubsection{\discintname}
+The authors have no competing interests to declare that are relevant to the content of this article.
+\end{credits}
+
+% ---- Bibliography ----
+%
+\begin{thebibliography}{24}
+\bibitem{nistgaiprofile2024}
+Autio, C., Schwartz, R., Dunietz, J., Jain, S., Stanley, M., Tabassi, E., Hall, P., Roberts, K.: Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile. NIST AI 600-1. National Institute of Standards and Technology (2024). \doi{10.6028/NIST.AI.600-1}
+
+\bibitem{iso23894}
+International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 23894:2023 Information technology — Artificial intelligence — Guidance on risk management. ISO/IEC (2023).
+
+\bibitem{iso42001}
+International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 42001:2023 Information technology — Artificial intelligence — Management system. ISO/IEC (2023).
+
+\bibitem{enisa2025}
+European Union Agency for Cybersecurity: ENISA Threat Landscape 2025. ENISA (2025).
+
+\bibitem{owaspagentic2026}
+OWASP Foundation: OWASP Top 10 for Agentic Applications 2026. OWASP GenAI Security Project (2025). \url{https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/}, last accessed 2026/09/09
+
+\bibitem{mitreatlas2026}
+MITRE Corporation: MITRE ATLAS: Adversarial Threat Landscape for Artificial-Intelligence Systems. Living knowledge base, accessed 2026/09/09. \url{https://atlas.mitre.org/}
+
+
+\bibitem{wu2025defenses}
+Wu, B., Zhu, M., Zheng, M., Zhu, Z., Wei, S., Zhang, M., Chen, H., Yuan, D., Liu, L., Liu, Q.: Defenses in adversarial machine learning: a systematic survey from the lifecycle perspective. IEEE Transactions on Pattern Analysis and Machine Intelligence 48(1), 876--895 (2026). \doi{10.1109/TPAMI.2025.3611340}
+
+\bibitem{ma2026advancements}
+Ma, R., Zhang, Y., Wang, J., Lu, W., Luo, X.: Advancements in adversarial example defense for deep learning models: a review. Cybersecurity 9, 108 (2026). \doi{10.1186/s42400-025-00546-3}
+
+\bibitem{nist2025aml}
+Vassilev, A., Oprea, A., Fordyce, A., Anderson, H., Davies, X., Hamin, M.: Adversarial machine learning: a taxonomy and terminology of attacks and mitigations. NIST AI 100-2e2025. National Institute of Standards and Technology (2025). \doi{10.6028/NIST.AI.100-2e2025}
+
+\bibitem{nistrmf2023}
+Tabassi, E.: Artificial Intelligence Risk Management Framework (AI RMF 1.0). NIST AI 100-1. National Institute of Standards and Technology (2023). \doi{10.6028/NIST.AI.100-1}
+
+\bibitem{akhtom2024trustworthy}
+Akhtom, D.M., Singh, M.M., XinYing, C.: Enhancing trustworthy deep learning for image classification against evasion attacks: a systematic literature review. Artificial Intelligence Review 57, 174 (2024). \doi{10.1007/s10462-024-10777-4}
+
+\bibitem{pelekis2025adversarial}
+Pelekis, S., Koutroubas, T., Blika, A., Berdelis, A., Karakolis, E., Ntanos, C., Spiliotis, E., Askounis, D.: Adversarial machine learning: a review of methods, tools, and critical industry sectors. Artificial Intelligence Review 58, 226 (2025). \doi{10.1007/s10462-025-11147-4}
+
+\bibitem{chatterjee2026autonomous}
+Chatterjee, R., Haque, S.: The autonomous battlefield: AI arms race in cybersecurity, offensive tactics, and the need for a global framework. In: Proc. IEEE International Conference on Recent Trends in Computer Science and Technology (ICRTCST), pp. 344--348 (2026). \doi{10.1109/ICRTCST68392.2026.11545371}
+
+\bibitem{owasp2025}
+OWASP Foundation: OWASP Top 10 for Large Language Model Applications (2025). \url{https://owasp.org/www-project-top-10-for-large-language-model-applications/}, last accessed 2026/09/09
+
+\bibitem{schroer2025offensive}
+Schr\"oer, S.L., Apruzzese, G., Human, S., Laskov, P., Anderson, H.S., Bernroider, E.W.N., Fass, A., Nassi, B., Rimmer, V., Roli, F., Salam, S., Shen, X.A., Sunyaev, A., Wadhwa-Brown, S., Wagner, T., Wang, W.: SoK: On the offensive potential of AI. In: Proc. IEEE Conference on Secure and Trustworthy Machine Learning (SaTML), pp. 247--280 (2025). \doi{10.1109/SaTML64287.2025.00021}
+
+\bibitem{gupta2023threatgpt}
+Gupta, M., Akiri, C., Aryal, K., Parker, E., Praharaj, L.: From ChatGPT to ThreatGPT: impact of generative AI in cybersecurity and privacy. IEEE Access 11, 80218--80245 (2023). \doi{10.1109/ACCESS.2023.3300381}
+
+\bibitem{charfeddine2024chatgpt}
+Charfeddine, M., Kammoun, H.M., Hamdaoui, B., Guizani, M.: ChatGPT's security risks and benefits: offensive and defensive use-cases, mitigation measures, and future implications. IEEE Access 12, 30263--30310 (2024). \doi{10.1109/ACCESS.2024.3367792}
+
+\bibitem{yan2023malware}
+Yan, S., Ren, J., Wang, W., Sun, L., Zhang, W., Yu, Q.: A survey of adversarial attack and defense methods for malware classification in cyber security. IEEE Communications Surveys \& Tutorials 25(1), 467--496 (2023). \doi{10.1109/COMST.2022.3225137}
+
+\bibitem{demelius2025dp}
+Demelius, L., Kern, R., Tr\"ugler, A.: Recent advances of differential privacy in centralized deep learning: a systematic survey. ACM Computing Surveys 57(6), 1--28 (2025). \doi{10.1145/3712000}
+
+\bibitem{jahan2026dp}
+Jahan, S., Ge, Y.-F., Bertino, E., Kabir, E., Mahmud, H., Zheng, Z., Wang, H.: Systematic literature review on differential privacy in machine learning. ACM Computing Surveys 58(11), 1--36 (2026). \doi{10.1145/3800684}
+
+\bibitem{alhidaifi2024cyber}
+AlHidaifi, S.M., Asghar, M.R., Ansari, I.S.: A survey on cyber resilience: key strategies, research challenges, and future directions. ACM Computing Surveys 56(8), 1--48 (2024). \doi{10.1145/3649218}
+
+\bibitem{segovia2024cps}
+Segovia-Ferreira, M., Rubio-Hern\'an, J., Cavalli, A., Garc\'ia-Alfaro, J.: A survey on cyber-resilience approaches for cyber-physical systems. ACM Computing Surveys 56(8), 1--37 (2024). \doi{10.1145/3652953}
+
+\bibitem{mavikumbure2024genai}
+Mavikumbure, H.S., Cobilean, V., Wickramasinghe, C.S., Drake, D., Manic, M.: Generative AI in cyber security of cyber physical systems: benefits and threats. In: Proc. IEEE International Conference on Human System Interaction (HSI) (2024). \doi{10.1109/HSI61632.2024.10613562}
+
+\bibitem{khawar2026future}
+Khawar, M., Khalid, S., Rehman, M.U., Usman, A., Malwi, W.A., Asiri, F.: Shaping the future of cybersecurity: the convergence of AI, quantum computing, and ethical frameworks for a secure digital era. Computer Science Review 60, 100882 (2026). \doi{10.1016/j.cosrev.2025.100882}
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,42 @@
+# Machine-readable schema for the seven-layer coding dataset
+
+layers:
+  - id: L1
+    name: Infrastructure
+  - id: L2
+    name: Platform / supply chain
+  - id: L3
+    name: Data
+  - id: L4
+    name: Model
+  - id: L5
+    name: Orchestration / agent
+  - id: L6
+    name: Interface
+  - id: L7
+    name: Application / governance
+
+coverage_codes:
+  P: Primary
+  S: Secondary
+  N: None
+
+confidence_codes:
+  H: High
+  M: Medium
+  L: Low
+
+required_fields:
+  - framework_id
+  - layer_id
+  - coverage
+  - evidence_location
+  - confidence
+
+optional_fields:
+  - evidence_excerpt
+  - evidence_type
+  - control_types
+  - assurance_evidence
+  - coder
+  - notes

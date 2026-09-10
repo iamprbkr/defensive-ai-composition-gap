@@ -1,0 +1,71 @@
+{
+  "audit_name": "13-point cross-layer AI security composition audit",
+  "status": "analytical screening instrument; not a validated risk score",
+  "points": [
+    {
+      "id": "A01",
+      "category": "L1",
+      "test": "Infrastructure integrity evidence exists."
+    },
+    {
+      "id": "A02",
+      "category": "L2",
+      "test": "Platform and supply-chain provenance/integrity evidence exists."
+    },
+    {
+      "id": "A03",
+      "category": "L3",
+      "test": "Data provenance, validation, and access controls are evidenced."
+    },
+    {
+      "id": "A04",
+      "category": "L4",
+      "test": "Model robustness/evaluation evidence is available."
+    },
+    {
+      "id": "A05",
+      "category": "L5",
+      "test": "Agent/orchestration authority and tool-use controls are evidenced."
+    },
+    {
+      "id": "A06",
+      "category": "L6",
+      "test": "Interface input/output validation and identity/provenance controls are evidenced."
+    },
+    {
+      "id": "A07",
+      "category": "L7",
+      "test": "Application-level authorization, policy, and governance evidence is available."
+    },
+    {
+      "id": "A08",
+      "category": "S1",
+      "test": "Infrastructure-to-platform trust boundary is tested for integrity/provenance continuity."
+    },
+    {
+      "id": "A09",
+      "category": "S2",
+      "test": "Platform-to-data boundary preserves access control and lineage assumptions."
+    },
+    {
+      "id": "A10",
+      "category": "S3",
+      "test": "Data-to-model boundary tests poisoning, provenance, and training/evaluation assumptions."
+    },
+    {
+      "id": "A11",
+      "category": "S4",
+      "test": "Model-to-orchestration boundary tests adversarial context and tool/agent behavior."
+    },
+    {
+      "id": "A12",
+      "category": "S5",
+      "test": "Orchestration-to-interface boundary tests identity, authority, and trajectory logging."
+    },
+    {
+      "id": "A13",
+      "category": "S6",
+      "test": "Interface-to-application boundary tests output validation and application authorization."
+    }
+  ]
+}
