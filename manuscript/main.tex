@@ -40,6 +40,8 @@ We conduct a descriptive content analysis of 35 publicly verifiable AI-security 
 The analysis shows a persistent concentration of primary coverage at model, data, and governance layers, while interface and orchestration coverage is smaller but rapidly expanding. The central finding is therefore not that these layers are ungoverned. It is that existing guidance rarely specifies a common assurance condition for demonstrating that controls owned by different layers remain valid when an attack crosses them. We operationalize this condition as a composition gap and propose a 13-point screening audit derived directly from the seven layers and six adjacent boundaries. The paper contributes a reproducible coding scheme, an interrelated coverage--boundary--incident evidence chain, and a set of testable composition obligations for future empirical validation.
 \end{abstract}
 
+\keywords{AI security \and composition gap \and trust boundaries \and defensive AI \and framework consolidation}
+
 \section{Introduction}
 
 AI security is increasingly a systems problem. A production AI service accepts input through an interface, retrieves or transforms context, invokes a model, routes outputs through tools or workflows, and operates on infrastructure and data supplied by multiple teams and vendors. Security controls are usually specified at one of these points. Attacks, however, need not respect the same decomposition.
@@ -309,10 +311,10 @@ The authors have no competing interests to declare that are relevant to the cont
 Autio, C., Schwartz, R., Dunietz, J., Jain, S., Stanley, M., Tabassi, E., Hall, P., Roberts, K.: Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile. NIST AI 600-1. National Institute of Standards and Technology (2024). \doi{10.6028/NIST.AI.600-1}
 
 \bibitem{iso23894}
-International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 23894:2023 Information technology — Artificial intelligence — Guidance on risk management. ISO/IEC (2023).
+International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 23894:2023 Information technology --- Artificial intelligence --- Guidance on risk management. ISO/IEC (2023).
 
 \bibitem{iso42001}
-International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 42001:2023 Information technology — Artificial intelligence — Management system. ISO/IEC (2023).
+International Organization for Standardization, International Electrotechnical Commission: ISO/IEC 42001:2023 Information technology --- Artificial intelligence --- Management system. ISO/IEC (2023).
 
 \bibitem{enisa2025}
 European Union Agency for Cybersecurity: ENISA Threat Landscape 2025. ENISA (2025).
@@ -379,5 +381,61 @@ Mavikumbure, H.S., Cobilean, V., Wickramasinghe, C.S., Drake, D., Manic, M.: Gen
 Khawar, M., Khalid, S., Rehman, M.U., Usman, A., Malwi, W.A., Asiri, F.: Shaping the future of cybersecurity: the convergence of AI, quantum computing, and ethical frameworks for a secure digital era. Computer Science Review 60, 100882 (2026). \doi{10.1016/j.cosrev.2025.100882}
 
 \end{thebibliography}
+
+% ---- Appendix ----
+%
+\appendix
+\section{Instrument Census}
+\label{app:census}
+
+Table~\ref{tab:census} lists every instrument in the 35-instrument corpus. Instruments that are not formal standards body deliverables are marked with $^\dagger$.
+
+\begin{table*}[t]
+\caption{The thirty five AI security instruments (instruments that are not standards body deliverables are marked with $^\dagger$).}
+\label{tab:census}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.8cm}p{5.5cm}p{2.5cm}p{2.3cm}p{2.3cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Instrument} & \textbf{Issuer} & \textbf{Nature} & \textbf{Region}\\
+\midrule
+F1  & NIST AI 100-2e2025, adversarial ML taxonomy & NIST & Standard & USA\\
+F2  & NIST AI RMF 1.0 & NIST & Framework & USA\\
+F3  & NIST SP 800-53 Rev.5 & NIST & Standard & USA\\
+F4  & ENISA multilayer security framework & ENISA & Guideline & EU\\
+F5  & ENISA AI threat landscape & ENISA & Report & EU\\
+F6  & EU AI Act 2024/1689$^\dagger$ & European Commission & Regulation & EU\\
+F7  & OECD AI system classification & OECD & Framework & Intl\\
+F8  & OECD AI incident reporting & OECD & Framework & Intl\\
+F9  & ISO/IEC 42001 & ISO/IEC & Standard & Intl\\
+F10 & ISO/IEC 23894 & ISO/IEC & Standard & Intl\\
+F11 & ISO/IEC 23053 & ISO/IEC & Standard & Intl\\
+F12 & ISO/IEC 5259 series & ISO/IEC & Standard & Intl\\
+F13 & ISO/IEC 27090 (in development) & ISO/IEC & Standard & Intl\\
+F14 & ETSI GR SAI-001 threat ontology & ETSI & Report & Intl\\
+F15 & ETSI GR SAI-002 data supply chain & ETSI & Report & Intl\\
+F16 & ETSI GR SAI-004 problem statement & ETSI & Report & Intl\\
+F17 & ETSI GR SAI-005 mitigation strategy & ETSI & Report & Intl\\
+F18 & ETSI GR SAI-006 hardware security & ETSI & Report & Intl\\
+F19 & ETSI DGR SAI-009 (in development) & ETSI & Report & Intl\\
+F20 & ETSI DGR SAI-010 (in development) & ETSI & Report & Intl\\
+F21 & MITRE ATLAS & MITRE & Knowledge base & USA\\
+F22 & OWASP Top 10 for LLM apps & OWASP & Community list & Intl\\
+F23 & Anthropic responsible scaling policy & Anthropic & Provider policy & USA\\
+F24 & OpenAI preparedness framework & OpenAI & Provider policy & USA\\
+F25 & Google DeepMind frontier safety framework & Google & Provider policy & USA\\
+F26 & AI Verify & IMDA & National framework & Singapore\\
+F27 & WEF AI cybersecurity framework & WEF & Initiative & Intl\\
+F28 & ISO/IEC 27001/27002 & ISO/IEC & Standard & Intl\\
+F29 & OECD AI principles & OECD & Principles & Intl\\
+F30 & Singapore Consensus 2026 & Multi state & Declaration & Intl\\
+F31 & International AI safety report 2026 & Multi state & Report & Intl\\
+F32 & NIST AI 100-1 workshops & NIST & Guideline & USA\\
+F33 & ISO/IEC 24029 series & ISO/IEC & Standard & Intl\\
+F34 & US EO 14028 & US government & Regulation & USA\\
+F35 & Dubai AI security policy & UAE government & National policy & UAE\\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \end{document}
