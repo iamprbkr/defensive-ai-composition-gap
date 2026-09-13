@@ -166,6 +166,38 @@ We also mapped sixteen attack classes and eighteen defensive controls across the
 
 The same pattern appears in privacy and resilience. Differential privacy limits information leakage during learning, while cyber-resilience addresses preparation, absorption, recovery, and adaptation. Neither specifies how privacy, identity, model, and application controls should interact during an attack. The problem is composition, not simply missing techniques.
 
+\subsection{Governance Principle Mapping}
+\label{sec:principles}
+
+We map twelve governance principles derived from NIST AI RMF~\cite{nistrmf2023,nistgaiprofile2024}, OECD AI Principles~\cite{oecd2024principles}, EU AI Act~\cite{euaiact2024}, and ISO/IEC 42001~\cite{iso42001} to the seven-layer model. Table~\ref{tab:principles} shows where each principle requires evidence and which layer owns the evidence. The mapping reveals that no single layer owns all twelve principles, and that composition across layers is required for governance to be demonstrable.
+
+\begin{table*}[t]
+\caption{Twelve governance principles mapped to the seven-layer AI stack. Each principle requires evidence at one or more layers; the "Boundary" column shows where composition is required for the principle to hold.}
+\label{tab:principles}
+\centering
+\small
+\begin{tabular}{@{}p{1.5cm}p{2.8cm}p{1.8cm}p{2.5cm}p{2.8cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Principle} & \textbf{Source} & \textbf{Primary layer} & \textbf{Boundary evidence required}\\
+\midrule
+G1 & Accountability & NIST Govern, OECD & L7 Application & L6$\rightarrow$L7: action authorization trace\\
+G2 & Transparency & NIST Govern, OECD & L7 Application & L5$\rightarrow$L6: model output provenance\\
+G3 & Fairness & NIST Measure, OECD & L4 Model & L3$\rightarrow$L4: training data provenance\\
+G4 & Robustness & NIST Measure, OECD & L4 Model & L4$\rightarrow$L5: model-orchestration joint test\\
+G5 & Privacy & NIST Manage, EU AI Act & L3 Data & L2$\rightarrow$L3: data ingestion integrity\\
+G6 & Human oversight & EU AI Act, OECD & L6 Interface & L5$\rightarrow$L6: trust label propagation\\
+G7 & Risk classification & EU AI Act, NIST Map & L7 Application & L6$\rightarrow$L7: output-to-action authorization\\
+G8 & Data governance & ISO 42001, NIST Map & L3 Data & L2$\rightarrow$L3: lineage trace\\
+G9 & Explainability & OECD, NIST Measure & L4 Model & L4$\rightarrow$L5: explanation-to-action trace\\
+G10 & Safety & OECD, NIST Manage & L5 Orchestration & L4$\rightarrow$L5: trajectory test\\
+G11 & Sustainability & OECD & L1 Infrastructure & L1$\rightarrow$L2: attestation\\
+G12 & Compliance & NIST Govern, EU AI Act & Cross-cutting & All boundaries: audit trail\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Three observations follow. First, accountability (G1) and compliance (G12) require evidence at every boundary. A system cannot demonstrate accountability if the evidence chain breaks at any layer transition. Second, the principles cluster: G3, G4, and G9 require model-layer evidence composed with data and orchestration layers; G1, G2, G6, and G7 require application-layer evidence composed with interface and orchestration layers. Third, no single instrument in the 35-instrument corpus covers all twelve principles at their required layers. This confirms the composition gap at the governance level: principles are specified at layers, but their enforcement requires composition across boundaries.
+
 \section{The Composition Gap}
 \label{sec:seams}
 
@@ -313,7 +345,7 @@ The authors have no competing interests to declare that are relevant to the cont
 
 % ---- Bibliography ----
 %
-\begin{thebibliography}{30}
+\begin{thebibliography}{32}
 \bibitem{nistgaiprofile2024}
 Autio, C., Schwartz, R., Dunietz, J., Jain, S., Stanley, M., Tabassi, E., Hall, P., Roberts, K.: Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile. NIST AI 600-1. National Institute of Standards and Technology (2024). \doi{10.6028/NIST.AI.600-1}
 
@@ -404,6 +436,12 @@ Cloud Security Alliance: The agentic AI trust-boundary crisis. CSA AI-assisted R
 
 \bibitem{boundedagents2026}
 Muruaga, X.: Bounded agents: delegation security for multi-agent AI systems. arXiv preprint 2608.15888 (2026). \url{https://arxiv.org/abs/2608.15888}
+
+\bibitem{oecd2024principles}
+Organisation for Economic Co-operation and Development: OECD AI Principles (updated 2024). OECD Digital Policy Committee (2024). \url{https://oecd.ai/en/ai-principles}
+
+\bibitem{euaiact2024}
+European Parliament and Council: Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (AI Act). Official Journal of the European Union (2024). \url{https://eur-lex.europa.eu/eli/reg/2024/1689}
 
 \end{thebibliography}
 
