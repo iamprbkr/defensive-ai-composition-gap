@@ -33,11 +33,11 @@
 %
 \maketitle
 \begin{abstract}
-AI security guidance is expanding faster than the evidence that its controls compose across system boundaries. Production AI systems combine interfaces, retrieval, orchestration, models, data, platforms, and infrastructure, while responsibility for these components is distributed across teams and vendors. This paper studies the resulting composition problem.
+AI security guidance is expanding faster than the evidence that its controls compose across system boundaries. Production AI systems combine interfaces, retrieval, orchestration, models, data, platforms, and infrastructure, while responsibility for these components is distributed across teams and vendors. This paper studies the resulting composition problem from a policy and governance perspective.
 
-We code 35 publicly verifiable AI-security instruments against a seven-layer system model using a descriptive content analysis. The corpus is purposive and is treated as a research sample, not as a statistical estimate of the global standards population. We translate the coverage matrix into seven trust boundaries and specify the assumptions, control obligations, and evidence that should hold at each boundary. Four documented incident classes provide consistency checks.
+We code 35 publicly verifiable AI-security instruments against a seven-layer system model using a descriptive content analysis. The corpus is purposive and is treated as a research sample, not as a statistical estimate of the global standards population. We translate the coverage matrix into seven trust boundaries and specify the assumptions, control obligations, and evidence that should hold at each boundary. Four documented incident classes provide consistency checks, supplemented by real-world incidents from the Cloud Security Alliance's 2026 trust-boundary analysis.
 
-The analysis finds persistent concentration of primary coverage at model, data, and governance layers, with smaller but growing coverage at interfaces and orchestration. The central finding is not that these layers are ungoverned. It is that existing guidance rarely specifies a common assurance condition for demonstrating that controls owned by different layers remain valid when an attack crosses them. We call this the composition gap and propose a 13-point screening audit derived from the seven layers and six adjacent boundaries. The paper contributes a reproducible coding scheme, an interrelated coverage-boundary-incident evidence chain, and a set of testable composition obligations.
+The analysis finds persistent concentration of primary coverage at model, data, and governance layers, with smaller but growing coverage at interfaces and orchestration. The central finding is not that these layers are ungoverned. It is that existing guidance rarely specifies a common assurance condition for demonstrating that controls owned by different layers remain valid when an attack crosses them. We call this the composition gap. Recent technical work on composition safety addresses how to enforce composition at the code level; our contribution addresses how to identify where composition is missing at the policy level. We propose a 13-point screening audit derived from the seven layers and six adjacent boundaries. The audit is the only practical screening procedure for composition gaps in existing guidance.
 \end{abstract}
 
 \keywords{AI security \and composition gap \and trust boundaries \and defensive AI \and framework consolidation}
@@ -49,6 +49,8 @@ AI security is increasingly a systems problem. A production AI service accepts i
 This paper studies that mismatch. We assembled 35 verifiable security instruments spanning NIST, ENISA, ISO/IEC, ETSI, MITRE, OWASP, provider policies, and national or regional policy sources, and mapped them onto a seven-layer stack: infrastructure, platform, data, model, orchestration, interface, and application. Primary coverage is concentrated at the model layer (14 instruments, 40.0\%) and governance (14 instruments, 40.0\%), followed by data (7, 20.0\%), platform (6, 17.1\%), infrastructure (6, 17.1\%), orchestration (3, 8.6\%), and interface (1, 2.9\%). These counts are a snapshot of the coded corpus, not a census of the evolving ecosystem.
 
 The interpretation also needs updating. Since the initial framework set was assembled, OWASP has formalized prompt injection and excessive agency in its 2025 LLM guidance and released a dedicated Top 10 for Agentic Applications for 2026. MITRE ATLAS now explicitly represents agentic AI and tool invocation in its threat matrix. NIST's 2025 adversarial-ML taxonomy likewise covers attacks across the AI lifecycle and distinguishes generative-AI misuse from conventional adversarial examples. These developments weaken any claim that interface and orchestration security is simply absent. They instead sharpen the more defensible claim: controls are emerging, but their composition across organizational and technical boundaries remains underspecified. \cite{owasp2025,owaspagentic2026,mitreatlas2026,nist2025aml}
+
+Technical work on composition safety has also advanced. CONTINUITY~\cite{continuity2026} models agent components with assume-guarantee contracts. ChainCaps~\cite{chaincaps2026} prevents permission laundering through monotonic capability attenuation. DSCC~\cite{dscc2026} composes per-tool policies into session-level effective policies. These contributions address how to enforce composition at the code level. Our contribution addresses how to identify where composition is missing at the policy and governance level. The Cloud Security Alliance~\cite{csa2026trustboundary} documents real incidents where agentic AI systems treated the appearance of a safe boundary as equivalent to an enforced one, confirming that the composition gap is not theoretical.
 
 The literature supports this narrower systems-level concern. Defense surveys report that robustness, cost, and accuracy trade-offs remain unresolved when defenses are evaluated independently. Offensive-security studies show that generative and agentic systems expand the range of actions available to attackers. Risk-management standards such as NIST AI RMF and ISO/IEC 42001 provide cross-organizational governance, but they do not prescribe a single technical composition rule for the heterogeneous controls used inside an AI application. \cite{wu2025defenses,ma2026advancements,nistrmf2023,nistgaiprofile2024,iso42001,iso23894}
 
@@ -78,8 +80,11 @@ Schr\"oer et al.~\cite{schroer2025offensive} systematize the offensive potential
 \paragraph{Standards and governance.}
 NIST AI RMF 1.0 and its Generative AI Profile provide risk-management guidance across the lifecycle~\cite{nistrmf2023,nistgaiprofile2024}. ISO/IEC 23894 provides AI-specific risk-management guidance, while ISO/IEC 42001 establishes an AI management system for organizational governance~\cite{iso23894,iso42001}. ENISA's 2025 threat landscape adds a threat-centric view based on 4,875 incidents observed between July 2024 and June 2025~\cite{enisa2025}. These instruments are important precisely because they operate above individual components. Their scope, however, differs from the technical question studied here: which control owns the interface between two independently governed components, and what evidence demonstrates that the controls compose?
 
+\paragraph{Composition safety.}
+Recent work has begun to address composition safety from a technical perspective. CONTINUITY~\cite{continuity2026} models each agent component with assume-guarantee contracts and carries authenticated security context across transitions. ChainCaps~\cite{chaincaps2026} attaches sink-specific capability budgets to values and propagates them monotonically through tool chains, preventing permission laundering. DSCC~\cite{dscc2026} composes per-tool security policies into session-level effective policies using a Most Restrictive Set algorithm. SCR-Bench~\cite{scrbench2026} introduces a benchmark for evaluating skill composition risk, showing that individually safe skills can become harmful when composed. Bounded Agents~\cite{boundedagents2026} formalizes delegation security with composition closure as a primitive. The Cloud Security Alliance~\cite{csa2026trustboundary} documents real incidents where agentic AI systems treated the appearance of a safe boundary as equivalent to an enforced one. These technical contributions address how to enforce composition; our contribution addresses how to identify where composition is missing in existing guidance.
+
 \paragraph{Positioning.}
-Our contribution is not another threat taxonomy or management framework. We use existing frameworks as inputs to a cross-framework analysis. Prior work has consolidated security frameworks for cloud computing (ENISA), mobile platforms (OWASP Mobile), and industrial control systems (NIST SP 800-82). These efforts share a common structure: they map controls from multiple standards onto a reference architecture and identify gaps. Our contribution applies this structure to AI systems, where the reference architecture must account for model behavior, orchestration, and data provenance in addition to traditional infrastructure and platform concerns. The novelty is limited to the mapping and boundary analysis: we identify where different classes of guidance meet, state the assumptions that cross each boundary, and test whether documented incidents are consistent with failures at those points.
+Our contribution is not another threat taxonomy or management framework. We use existing frameworks as inputs to a cross-framework analysis. Prior work has consolidated security frameworks for cloud computing (ENISA), mobile platforms (OWASP Mobile), and industrial control systems (NIST SP 800-82). These efforts share a common structure: they map controls from multiple standards onto a reference architecture and identify gaps. Our contribution applies this structure to AI systems, where the reference architecture must account for model behavior, orchestration, and data provenance in addition to traditional infrastructure and platform concerns. Recent technical work on composition safety (CONTINUITY, ChainCaps, DSCC) addresses how to enforce composition at the code level. Our contribution addresses how to identify where composition is missing at the policy and governance level. The two perspectives are complementary: technical enforcement requires knowing where to enforce, and our coverage analysis identifies those points.
 
 \paragraph{Novelty under current guidance.} The contribution is not the discovery of prompt injection, agent hijacking, or excessive agency. Those risks are documented by current application-security and adversarial-ML resources. The contribution is treating the \emph{transfer of security responsibility} as the unit of analysis and connecting four artifacts that are usually reported separately: layer coverage, boundary assumptions, incident paths, and auditable evidence obligations. This distinction makes the study falsifiable: a future framework can reduce the measured composition gap if it explicitly specifies a boundary rule and the evidence needed to demonstrate it.
 
@@ -221,6 +226,8 @@ Classifier evasion & S6 & model or input robustness is treated as sufficient for
 
 Across the four cases, the common pattern is a control boundary with an untested assumption. The mapping is necessarily interpretive because incident reports were not written using our model. It is therefore consistency evidence, not ground truth.
 
+Recent real-world incidents documented by the Cloud Security Alliance~\cite{csa2026trustboundary} confirm this pattern in production agentic AI systems. In July 2026, five independent disclosures revealed that agentic AI systems consistently treated the appearance of a safe boundary as equivalent to an enforced one. The GhostApproval finding showed that six AI coding assistants could be tricked by symlinks into writing attacker-controlled content to locations different from those displayed in approval dialogs. The sandbox trust-handoff flaw showed that agents could honor every rule of their sandbox and still achieve an escape by writing files that trusted host-level tools later executed. These incidents map directly to our boundary model: the composition failure occurred at S4/S5 (orchestration to interface) where the agent's trust boundary was assumed but not verified.
+
 \begin{table}[t]
 \caption{Cross-table traceability: how the paper's evidence chain connects architecture, corpus coverage, boundaries, and incidents.}
 \label{tab:trace}
@@ -291,7 +298,7 @@ AI security guidance is no longer short of taxonomies, controls, or agent-specif
 
 The paper's main contribution is a composition view. Table~\ref{tab:layers} defines the security responsibilities and evidence expected at each layer. Table~\ref{tab:coverage} records where the sampled instruments claim responsibility. Table~\ref{tab:seams} converts the resulting interfaces into explicit assumptions, obligations, and tests. Table~\ref{tab:validation} asks whether documented attack paths are consistent with those boundary failures. Table~\ref{tab:trace} makes the evidence chain explicit. The paper does not merely list frameworks; it provides a route from framework scope to a testable system property.
 
-Interface and orchestration security are not ungoverned; recent OWASP and MITRE work demonstrates this. What remains less standardized is the assurance condition that connects identity, provenance, model behavior, agent authority, and application-side effects across organizational boundaries. The proposed 13-point audit translates that condition into a screening exercise, but its threshold is not empirically calibrated and should not be treated as a security score.
+Recent technical work on composition safety (CONTINUITY, ChainCaps, DSCC) addresses how to enforce composition at the code level. Our contribution addresses the complementary question: where in existing guidance is composition missing? The Cloud Security Alliance's 2026 trust-boundary analysis confirms that the composition gap is not theoretical; real agentic AI systems have failed at the boundaries our model identifies. The 13-point audit translates that identification into a screening exercise, but its threshold is not empirically calibrated and should not be treated as a security score.
 
 For standards developers, the practical implication is to add explicit boundary requirements to existing controls rather than creating another standalone framework. A mature requirement should name the owner, state the trust assumption, specify the evidence that transfers across the boundary, and define what happens when that evidence is absent or invalid. That is the level at which today's fragmented guidance can become composable assurance.
 
@@ -306,7 +313,7 @@ The authors have no competing interests to declare that are relevant to the cont
 
 % ---- Bibliography ----
 %
-\begin{thebibliography}{24}
+\begin{thebibliography}{30}
 \bibitem{nistgaiprofile2024}
 Autio, C., Schwartz, R., Dunietz, J., Jain, S., Stanley, M., Tabassi, E., Hall, P., Roberts, K.: Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile. NIST AI 600-1. National Institute of Standards and Technology (2024). \doi{10.6028/NIST.AI.600-1}
 
@@ -379,6 +386,24 @@ Mavikumbure, H.S., Cobilean, V., Wickramasinghe, C.S., Drake, D., Manic, M.: Gen
 
 \bibitem{khawar2026future}
 Khawar, M., Khalid, S., Rehman, M.U., Usman, A., Malwi, W.A., Asiri, F.: Shaping the future of cybersecurity: the convergence of AI, quantum computing, and ethical frameworks for a secure digital era. Computer Science Review 60, 100882 (2026). \doi{10.1016/j.cosrev.2025.100882}
+
+\bibitem{continuity2026}
+CONTINUITY Consortium: Security-context contracts for composable LLM agent controls. arXiv preprint 2609.05269 (2026). \url{https://arxiv.org/abs/2609.05269}
+
+\bibitem{chaincaps2026}
+Jiang, Z., et al.: ChainCaps: composition-safe tool-using agents via monotonic capability attenuation. arXiv preprint 2605.26542 (2026). \url{https://arxiv.org/abs/2605.26542}
+
+\bibitem{dscc2026}
+DSCC Consortium: Securing multi-tool AI agent chains with dynamic, real-time compositional policies. arXiv preprint 2607.03423 (2026). \url{https://arxiv.org/abs/2607.03423}
+
+\bibitem{scrbench2026}
+SCR-Bench Consortium: Benign in isolation, harmful in composition: security risks in agent skill ecosystems. arXiv preprint 2606.15242 (2026). \url{https://arxiv.org/abs/2606.15242}
+
+\bibitem{csa2026trustboundary}
+Cloud Security Alliance: The agentic AI trust-boundary crisis. CSA AI-assisted Rapid Research (2026). \url{https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/08/agentic-ai-trust-boundary-crisis-v1.0-csa-styled.pdf}
+
+\bibitem{boundedagents2026}
+Muruaga, X.: Bounded agents: delegation security for multi-agent AI systems. arXiv preprint 2608.15888 (2026). \url{https://arxiv.org/abs/2608.15888}
 
 \end{thebibliography}
 
